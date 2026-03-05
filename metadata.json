@@ -1,0 +1,5 @@
+{
+  "name": "AI HTML Editor",
+  "description": "A simple AI-powered HTML editor that allows users to paste code, describe updates, and preview/download the results.",
+  "requestFramePermissions": []
+}
