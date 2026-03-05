@@ -57,8 +57,8 @@ export default async function handler(req: Request) {
       async start(controller) {
         const encoder = new TextEncoder();
         try {
-          for await (const chunk of response.stream) {
-            const text = chunk.text();
+          for await (const chunk of response) {
+            const text = chunk.text;
             if (text) {
               controller.enqueue(encoder.encode(text));
             }
