@@ -48,17 +48,32 @@ export default async function handler(req: Request) {
       5. If the original code is empty, generate a complete HTML structure based on the instruction.
     `;
 
-    const response = await ai.models.generateContent({
+    const response = await ai.models.generateContentStream({
       model: "gemini-2.5-flash",
       contents: prompt,
     });
 
-    const text = response.text || "";
-    const cleanedText = text.replace(/^```html\s*/, "").replace(/^```\s*/, "").replace(/```$/, "").trim();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const chunk of response.stream) {
+            const text = chunk.text();
+            if (text) {
+              controller.enqueue(encoder.encode(text));
+            }
+          }
+          controller.close();
+        } catch (e) {
+          console.error("Streaming error:", e);
+          controller.error(e);
+        }
+      },
+    });
 
-    return new Response(JSON.stringify({ html: cleanedText }), {
+    return new Response(stream, {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
   } catch (error) {
     console.error("Error processing AI request:", error);

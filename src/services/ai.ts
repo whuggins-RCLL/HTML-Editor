@@ -14,8 +14,22 @@ export async function updateHtml(originalHtml: string, instruction: string): Pro
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
-    return data.html;
+    // Handle streamed response
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("Response body is not readable");
+
+    let text = "";
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode(); // flush
+
+    // Clean up any potential markdown fences
+    return text.replace(/^```html\s*/, "").replace(/^```\s*/, "").replace(/```$/, "").trim();
   } catch (error) {
     console.error("Error updating HTML:", error);
     throw new Error("Failed to update HTML. Please try again.");
