@@ -14,21 +14,12 @@ async function startServer() {
   app.post("/api/update-html", async (req, res) => {
     try {
       const { html, instruction } = req.body;
-      const apiKey = process.env.GEMINI_API_KEY;
-
-      // Log key status (do not log the full key)
-      if (!apiKey) {
-        console.error("Error: GEMINI_API_KEY is undefined or empty.");
-      } else if (apiKey === "MY_GEMINI_API_KEY") {
-        console.error("Error: GEMINI_API_KEY is set to the placeholder value.");
-      } else {
-        console.log(`Processing request with API key (length: ${apiKey.length})`);
-      }
+      // Check for GEMINI_API_KEY first (standard), then GEMINI_API_KEY (user's typo)
+      const apiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
       if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
-        res.status(500).json({ 
-          error: "Configuration Error: GEMINI_API_KEY is missing or invalid. Please set it in your environment variables or AI Studio secrets." 
-        });
+        console.error("GEMINI_API_KEY is missing or invalid (placeholder detected)");
+        res.status(500).json({ error: "Server configuration error: Invalid API Key" });
         return;
       }
 
