@@ -9,8 +9,9 @@ export async function updateHtml(originalHtml: string, instruction: string): Pro
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || 'Failed to update HTML');
+      const errorData = await response.json().catch(() => null);
+      const errorMessage = errorData?.error || `Request failed with status ${response.status}`;
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
